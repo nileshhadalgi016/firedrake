@@ -39,9 +39,10 @@ def test_stokes_complex(mesh, space):
     z = Function(Z)
     u, p = z.subfunctions
 
+    interp = interpolate(div(u), p.function_space())
     for k in range(len(u.dat.data)):
         u.dat.data_wo[k] = 1
-        p.interpolate(div(u))
+        assemble(interp, tensor=p)
         assert norm(div(u) - p) < 1E-10
         u.dat.data_wo[k] = 0
 

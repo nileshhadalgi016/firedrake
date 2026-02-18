@@ -266,6 +266,11 @@ class Interpolator(abc.ABC):
         self.default_missing_val = expr.options.default_missing_val
         self.access = expr.options.access
 
+        self.bcs = None
+        self.mat_type = None
+        self.sub_mat_type = None
+        self.assembler = None
+
     @abc.abstractmethod
     def _get_callable(
         self,
@@ -357,7 +362,17 @@ class Interpolator(abc.ABC):
         """
         self._check_mat_type(mat_type)
 
-        result = self._get_callable(tensor=tensor, bcs=bcs, mat_type=mat_type, sub_mat_type=sub_mat_type)()
+        if self.assembler is not None and (bcs == self.bcs and (self.rank != 2 or (mat_type == self.mat_type and sub_mat_type == self.sub_mat_type))):
+            pass
+        else:
+            # FIXME do not pass bcs to _get_callable
+            self.bcs = bcs
+            self.mat_type = mat_type
+            self.sub_mat_type = sub_mat_type
+            self.assembler = self._get_callable(tensor=None, bcs=bcs, mat_type=mat_type, sub_mat_type=sub_mat_type)
+
+        result = self.assembler()
+
         if self.rank == 2:
             # Assembling the operator
             assert isinstance(tensor, MatrixBase | None)

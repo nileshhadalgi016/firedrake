@@ -34,6 +34,9 @@ from pyop2.types.mat import _GlobalMatPayload, _DatMatPayload
 from pyop2.utils import cached_property
 
 
+from ufl.algorithms.analysis import has_exact_type
+from ufl.classes import CoefficientDerivative
+
 __all__ = "assemble",
 
 
@@ -911,6 +914,9 @@ class BaseFormAssembler(AbstractFormAssembler):
         This function is called in :func:`base_form_assembly_visitor`. Depending on the type of the resulting tensor,
         we may call :func:`assemble_form` or traverse the sub-DAG via :func:`assemble_base_form`.
         """
+        if not has_exact_type(form, CoefficientDerivative):
+            return form
+
         if isinstance(form, ufl.form.Form):
             from firedrake.parameters import parameters as default_parameters
             from tsfc.parameters import is_complex
